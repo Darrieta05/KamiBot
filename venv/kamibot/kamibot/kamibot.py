@@ -2,7 +2,7 @@
 
 import os, pymongo
 from flask import Flask, request, session, redirect, url_for,  render_template, json, jsonify, Response
-from flask.ext.pymongo import PyMongo
+from flask_pymongo import PyMongo
 
 
 app = Flask(__name__)
@@ -80,6 +80,41 @@ def ex_comando(nombre):
         resultado = "Ningun comando con ese nombre"
 
     return jsonify({"resultado": resultado})
+
+@app.route('/api/actualiza/<nombre>', methods=['POST', 'GET'])
+def upd_comando(nombre):
+    comando  = mongo.db.commandos
+
+    s = comando.find_one({"name": nombre})
+
+    if s:
+        in_args = request.args
+        nombre_dato = in_args["param1"]
+        nombre_nuevo = in_args["param2"]
+
+        s[nombre_dato] = nombre_nuevo
+        comando.save(s)
+
+        resultado = {"name": s["name"], "documentacion" : s["doc"]}
+    else:
+        resultado = "Ningun comando con ese nombre"
+
+    return jsonify({"actualiza": resultado})
+
+@app.route('/api/borrar/<nombre>')
+def del_comando(nombre):
+    comando = mongo.db.commandos
+
+    s = comando.find_one({"name": nombre})
+    if s:
+        comando.remove(s)
+        resultado = "Eliminado exitosamente" + s["name"]
+    else:
+        resultado = "Ningún comando con ese nombre"
+
+
+    return jsonify("resultado": resultado)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
