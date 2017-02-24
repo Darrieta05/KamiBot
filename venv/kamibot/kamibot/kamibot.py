@@ -21,6 +21,46 @@ def index():
            " para acceder al Log File ingresa a /api/log"
 
 
+@app.route('/api/comandos')
+def sh_comandos():
+    comandos = mongo.db.commandos
+
+    resultado = []
+
+    for i in comandos.find():
+        resultado.append({"documentacion" : i["doc"], "nombre" : i["name"]})
+
+    return jsonify({"comandos" : resultado})
+
+@app.route('/api/agrega', methods=['POST'])
+def add_comandos():
+    comando = mongo.db.commandos
+
+    name = request.json["name"]
+    doc = request.json["doc"]
+    base = request.json["base"]
+    param1 = request.json["param1"]
+    param2 = request.json["param2"]
+    param3 = request.json["param3"]
+
+    comando_id = comando.insert({"name" : name, "doc" : doc, "base" : base, "param1" : param1, "param2" : param2, "param3" : param3})
+    nuevo_comando = comando.find_one({"_id" : comando_id})
+
+    resultado = {"name" : nuevo_comando["name"], "doc" : nuevo_comando["doc"]}
+
+    return jsonify({"resultado": resultado})
+
+@app.route('/api/comandos/<nombre>', methods=['GET'])
+def find_comando(nombre):
+    comandos = mongo.db.commandos
+
+    s = comandos.find_one({"name": nombre})
+    if s:
+        resultado = {"name": s["name"], "documentacion" : s["doc"]}
+    else:
+        resultado = "Ningun comando con ese nombre"
+
+    return jsonify({"resultado": resultado})
 
 
 if __name__ == '__main__':
