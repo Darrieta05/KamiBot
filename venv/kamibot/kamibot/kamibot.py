@@ -62,6 +62,24 @@ def find_comando(nombre):
 
     return jsonify({"resultado": resultado})
 
+@app.route('/api/ejecuta/<nombre>', methods=['POST'])
+def ex_comando(nombre):
+    comando = mongo.db.commandos
+    base = param1 = param2 = param3 = ""
+
+    s = comando.find_one({"name": nombre})
+    if s:
+        in_args = request.args
+        base = s["base"]
+        param1 = in_args["param1"]
+        param3 = in_args["param3"]
+        param2 = in_args["param2"]
+
+        resultado = "" + base + " " + param1 + " " + param2 + " " + param3
+    else:
+        resultado = "Ningun comando con ese nombre"
+
+    return jsonify({"resultado": resultado})
 
 if __name__ == '__main__':
     app.run(debug=True)
