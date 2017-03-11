@@ -1,6 +1,8 @@
 # coding = UTF-8
 
-import os, pymongo
+import requests
+import os, pymongo, datetime
+from bson.json_util import dumps
 from flask import Flask, request, session, redirect, url_for,  render_template, json, jsonify, Response
 from flask_pymongo import PyMongo
 
@@ -12,108 +14,204 @@ app.config['MONGO_URI'] = 'mongodb://darrieta:Daralu25@ds161049.mlab.com:61049/k
 
 mongo = PyMongo(app)
 
+
+@app.errorhandler(404)
+def handle_bad_request(e):
+    return 'Not Found!'
+
+@app.errorhandler(500)
+def handle_bad_server(e):
+    return 'Bad Server!'
+
+@app.errorhandler(405)
+def handle_bad_server(e):
+    return 'Metodo incorrecto!'
+
+
 @app.route('/api', methods=['GET'])
 def index():
-    return "Hola, mi nombre es Kami \n" \
+    if request.method == 'GET':
+        return "Hola, mi nombre es Kami \n" \
            " para acceder a mi lista de comandos ingresa a  /api/comandos \n" \
            " para ejecutar un comando ingresa a  /api/ejecuta \n" \
            " para agregar un comando nuevo ingresa a /api/agrega \n" \
            " para acceder al Log File ingresa a /api/log"
+    else:
+        return "Solo funciona con metodo GET"
 
-
-@app.route('/api/comandos')
+@app.route('/api/comandos', methods=['GET'])
 def sh_comandos():
-    comandos = mongo.db.commandos
+    if request.method == 'GET':
+        comandos = mongo.db.comandos
 
-    resultado = []
+        resultado = []
 
-    for i in comandos.find():
-        resultado.append({"documentacion" : i["doc"], "nombre" : i["name"]})
-
-    return jsonify({"comandos" : resultado})
-
-@app.route('/api/agrega', methods=['POST'])
-def add_comandos():
-    comando = mongo.db.commandos
-
-    name = request.json["name"]
-    doc = request.json["doc"]
-    base = request.json["base"]
-    param1 = request.json["param1"]
-    param2 = request.json["param2"]
-    param3 = request.json["param3"]
-
-    comando_id = comando.insert({"name" : name, "doc" : doc, "base" : base, "param1" : param1, "param2" : param2, "param3" : param3})
-    nuevo_comando = comando.find_one({"_id" : comando_id})
-
-    resultado = {"name" : nuevo_comando["name"], "doc" : nuevo_comando["doc"]}
-
-    return jsonify({"resultado": resultado})
+        for i in comandos.find():
+            resultado.append({"nombre" : i["name"], "documentacion" : i["doc"]})
+        save_log("muestra comandos")
+        return jsonify({"comandos" : resultado})
+    else:
+        return "Se esperaba un metodo GET"
 
 @app.route('/api/comandos/<nombre>', methods=['GET'])
 def find_comando(nombre):
-    comandos = mongo.db.commandos
+    if request.method == 'GET':
+        comandos = mongo.db.comandos
 
-    s = comandos.find_one({"name": nombre})
-    if s:
-        resultado = {"name": s["name"], "documentacion" : s["doc"]}
+        s = comandos.find_one({"name": nombre})
+        if s:
+            resultado = {"name": s["name"], "documentacion" : s["doc"]}
+            save_log("busca")
+        else:
+            resultado = "Ningun comando con ese nombre"
+
+        return jsonify({"resultado": resultado})
     else:
-        resultado = "Ningun comando con ese nombre"
+        return "Se esperaba un metodo GET"
 
-    return jsonify({"resultado": resultado})
+
+@app.route('/api/agrega', methods=['POST'])
+def add_comandos():
+    comando = mongo.db.comandos
+    if request.method == 'POST':
+        name = request.json["nombre"]
+        doc = request.json["doc"]
+        code = request.json["codigo"]
+
+        comando_id = comando.insert({"name" : name, "doc" : doc, "code": code})
+        nuevo_comando = comando.find_one({"_id" : comando_id})
+
+        resultado = {"name" : nuevo_comando["name"], "doc" : nuevo_comando["doc"]}
+        save_log("agrega")
+        return jsonify({"resultado": resultado})
+    else:
+        return "Se esperaba un metodo GET con el codigo dentro en formato JSON"
+
 
 @app.route('/api/ejecuta/<nombre>', methods=['POST'])
 def ex_comando(nombre):
-    comando = mongo.db.commandos
-    base = param1 = param2 = param3 = ""
+    if request.method == 'POST':
+        comando = mongo.db.comandos
 
-    s = comando.find_one({"name": nombre})
-    if s:
-        in_args = request.args
-        base = s["base"]
-        param1 = in_args["param1"]
-        param3 = in_args["param3"]
-        param2 = in_args["param2"]
+        sol_json = request.args
+        dict_json = dict(sol_json)
+        num_par = len(request.args)
+        resultado = None
+        print(len(dict_json))
+        print(dict_json)
+        print(request.args)
 
-        resultado = "" + base + " " + param1 + " " + param2 + " " + param3
+        if num_par == 3:
+            parametro1 = sol_json['parametro1']
+            parametro2 = sol_json['parametro2']
+            parametro3 = sol_json['parametro3']
+        elif num_par == 2:
+            parametro1 = sol_json['parametro1']
+            parametro2 = sol_json['parametro2']
+        elif num_par == 1:
+            parametro1 = sol_json['parametro1']
+        else:
+            return "No hay parametros"
+
+        s = comando.find_one({"name": nombre})
+        if s:
+            print(s["code"])
+            exec s["code"]
+            print(resultado)
+            return jsonify({"resultado": resultado})
+            resultado = "Ningun comando con ese nombre"
     else:
-        resultado = "Ningun comando con ese nombre"
+        return "Se esperaba un metodo POST"
 
-    return jsonify({"resultado": resultado})
+@app.route('/api/yoda')
+def yoda():
+    in_args = request.args
+    parametro = in_args['parametro1']
+
+    response = requests.get("https://yoda.p.mashape.com/yoda?sentence=" + parametro, headers={
+    "X-Mashape-Key": "N1r9Wjs7i3mshVbBblejkqCufYqRp1AVNxhjsnV1hCxPlUJehU",
+    "Accept": "text/plain"
+  })
+    print(response)
+    print(response.json)
+    contenido = response.json()
+
+    print(contenido)
+
+@app.route('/api/temperatura', methods=['POST'])
+def temperatura():
+    parametro1 = request.args["parametro1"]
+    parametro2 = request.args["parametro2"]
+    print (parametro1)
+    r = requests.get(
+        'http://api.openweathermap.org/data/2.5/weather?zip='+parametro1+','+parametro2+'&appid=fd38d62aa4fe1a03d86eee91fcd69f6e')
+    # json_object = r.text
+
+    json_object = r.json()
+    temp_k = float(json_object['main']['temp'])
+    country = json_object['sys']['country']
+    temp_c = (temp_k - 273.15)
+    resp = Response(json.dumps(temp_c), status=200, mimetype='application/json')
+    return resp
 
 @app.route('/api/actualiza/<nombre>', methods=['POST', 'GET'])
 def upd_comando(nombre):
-    comando  = mongo.db.commandos
+    if request.method == 'POST' or request.method == 'GET':
+        comando = mongo.db.comandos
 
-    s = comando.find_one({"name": nombre})
+        s = comando.find_one({"name": nombre})
 
-    if s:
-        in_args = request.args
-        nombre_dato = in_args["param1"]
-        nombre_nuevo = in_args["param2"]
+        if s:
+            in_args = request.args
+            nombre_dato = in_args["param1"]
+            nombre_nuevo = in_args["param2"]
 
-        s[nombre_dato] = nombre_nuevo
-        comando.save(s)
+            s[nombre_dato] = nombre_nuevo
+            comando.save(s)
 
-        resultado = {"name": s["name"], "documentacion" : s["doc"]}
+            resultado = {"name": s["name"], "documentacion" : s["doc"]}
+        else:
+            resultado = "Ningun comando con ese nombre"
+        save_log("actualiza")
+        return jsonify({"actualiza": resultado})
     else:
-        resultado = "Ningun comando con ese nombre"
+        return "Se esperaba un metodo POST o GET"
 
-    return jsonify({"actualiza": resultado})
-
-@app.route('/api/borrar/<nombre>')
+@app.route('/api/borrar/<nombre>', methods=['DELETE'])
 def del_comando(nombre):
-    comando = mongo.db.commandos
+    if request.method == 'DELETE':
+        comando = mongo.db.comandos
 
-    s = comando.find_one({"name": nombre})
-    if s:
-        comando.remove(s)
-        resultado = "Eliminado exitosamente" + s["name"]
+        s = comando.find_one({"name": nombre})
+        if s:
+            comando.remove(s)
+            resultado = "Eliminado exitosamente" + s["name"]
+        else:
+            resultado = "Ningun comando con ese nombre"
+
+        save_log("borrar")
+        return jsonify({"resultado": resultado})
     else:
-        resultado = "Ningún comando con ese nombre"
+        return "Se esperaba un metodo DELETE"
 
 
-    return jsonify("resultado": resultado)
+@app.route('/api/log', methods=['GET'])
+def sh_log():
+    if request.method == 'GET':
+        log = mongo.db.log
+        resultado = log.find()
+        array = list(resultado)
+        return jsonify({"log": dumps(array)})
+    else:
+        return "Se esperaba un metodo GET"
+
+
+def save_log(accion):
+    log = mongo.db.log
+    now = datetime.datetime.now()
+    now_u = unicode(now.replace(microsecond=0))
+    log_id = log.insert({"accion": accion, "fecha": now_u})
+
 
 
 if __name__ == '__main__':

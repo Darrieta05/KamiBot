@@ -1,0 +1,8 @@
+{
+    "_id": {
+        "$oid": "58c33546c30f7215f10e37cd"
+    },
+    "doc": "Convierte una oración a la manera en que Yoda la diría",
+    "code": "\nresultado = requests.get('https://yoda.p.mashape.com/yoda?sentence='+parametro1+'\"',headers={'X-Mashape,Key':'N1r9Wjs7i3mshVbBblejkqCufYqRp1AVNxhjsnV1hCxPlUJehU','Accept': 'text/plain'})",
+    "name": "yoda"
+}
