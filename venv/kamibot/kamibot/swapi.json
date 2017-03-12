@@ -1,0 +1,5 @@
+{
+  "nombre":"swapi",
+  "doc":"muestra la informacion de un personaje de Starwars dependiendo del id",
+  "codigo": "\nr = requests.get('http://swapi.co/api/people/'+parametro1)\njson_object = r.json()\nresultado=json_object"
+}

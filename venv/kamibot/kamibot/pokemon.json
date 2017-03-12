@@ -1,0 +1,5 @@
+{
+  "nombre": "pokemon",
+  "doc": "Entrega toda la información sobre un pokemon dependiendo del id o nombre",
+  "codigo": "\nr = requests.get('http://pokeapi.co/api/v2/pokemon/'+parametro1)\njson_object = r.json()\nresultado=json_object"
+}

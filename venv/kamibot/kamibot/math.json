@@ -1,0 +1,5 @@
+{
+  "name": "Mate",
+  "doc": "Realiza cualquier operación matemática",
+  "code": "\nres ='parametro1'\n resultado = res"
+}

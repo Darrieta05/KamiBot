@@ -1,0 +1,5 @@
+{
+  "nombre":"swapi",
+  "doc":"muestra el link a una imagen aleatoria dependiendo de la categoría que ingresa",
+  "codigo": "\nr = requests.get('https://source.unsplash.com/category/'+parametro1)\njson_object = r.json()\nresultado=json_object"
+}

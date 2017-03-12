@@ -116,9 +116,13 @@ def ex_comando(nombre):
         s = comando.find_one({"name": nombre})
         if s:
             print(s["code"])
-            exec s["code"]
-            print(resultado)
+            try:
+                exec s["code"]
+                print(resultado)
+            except ValueError:
+                resultado = "Hay un problema con el comando"
             return jsonify({"resultado": resultado})
+        else:
             resultado = "Ningun comando con ese nombre"
     else:
         return "Se esperaba un metodo POST"
@@ -216,4 +220,3 @@ def save_log(accion):
 
 if __name__ == '__main__':
     app.run(debug=True)
-
