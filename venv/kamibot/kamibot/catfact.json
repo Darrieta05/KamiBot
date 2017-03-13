@@ -1,0 +1,5 @@
+{
+  "nombre": "catfact",
+  "doc": "Entrega sentencias acerca de gatos",
+  "codigo": "\nr = requests.get('http://catfacts-api.appspot.com/api/facts?number=1 ')\njson_object = r.json()\nresultado=json_object"
+}

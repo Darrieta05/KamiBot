@@ -1,0 +1,5 @@
+{
+  "nombre":"catimg",
+  "doc": "Manda imagenes de gatos aleatorias",
+  "codigo": "\nr = requests.get('http://thecatapi.com/api/images/get?api_key=MTY1NzI2&format=src')\nresultado=r"
+}

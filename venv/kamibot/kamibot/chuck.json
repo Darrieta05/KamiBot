@@ -1,0 +1,5 @@
+{
+  "nombre": "chuck",
+  "doc": "Entrega chiste sobre chuck norris",
+  "codigo": "\nr = requests.get('https://api.chucknorris.io/jokes/random')\njson_object = r.json()\nresultado=json_object"
+}
