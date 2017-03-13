@@ -34,8 +34,6 @@ def handle_bad_request(e):
     return 'Hey! Bad request!'
 
 
-
-
 @app.route('/api', methods=['GET'])
 def index():
     if request.method == 'GET':
