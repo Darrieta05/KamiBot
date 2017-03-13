@@ -1,6 +1,4 @@
 # KamiBot
-API Bot that responds and learns commands.
-
 Kami es un Bot que muestra, ejecuta, aprende comandos guardados en una base de datos Mongo en la nube
 
 Funciona mediante un micro-framework Flask que usa Python como lenguaje de programación.
@@ -31,4 +29,55 @@ Para ejecutar el programa se deben realizar varios comandos:
   venv/kamibot/kamibot$ python kamibot.py
 
   Se cargará el servidor en localhost donde realizaremos las consultas mediante el programa Postman
+  
+# Manual de uso
+## Inicio
+ la ruta de inicio es localhost:5000/api
+  Esta ruta muestra un mensaje de bienvenida y los comandos utilizables por el usuario:
+  
+  >Hola, mi nombre es Kami 
+  
+   >para acceder a mi lista de comandos ingresa a  /api/comandos 
+   
+   >para ejecutar un comando ingresa a  /api/ejecuta 
+   
+   >para agregar un comando nuevo ingresa a /api/agrega 
+   
+   >para acceder al Log File ingresa a /api/log
+  
+## Comandos
+
+  la ruta /api/comandos permite acceder a una lista en formato JSON de todos los comandos con su nombre y su documentación.
+  
+## Ejecuta
+  
+  la ruta /api/ejecuta/ recibe una variable "nombre" justo después de la ruta, esta variable se remplaza por el nombre del comando que se debe ejecutar. Esta ruta funciona unicamente mediante método POST
+  
+  los comandos usualmente reciben parámetros. el "key" de estos parámetros es:
+  
+  >parametro1
+  
+  >parametro2
+  
+  >parametro3
+  
+  si se envía más de un parámetro el comando funcionará de manera usual. Si falta un parámetro en la solicitud, el comando mostrará un error y se deberá realizar la solicitud nuevamente con la cantidad de comandos correcta.
+  
+  no se deberán enviar parámetros con "value" vacío porque devolverá un error.
+  
+## Agrega
+  
+  la ruta /api/agrega funciona mediante un método POST unicamente. La ruta no involucra el envío de parámetros.
+  
+  Funciona unicamente si se envía un elemento JSON con las siguientes características:
+  
+  {
+   "nombre": "(nombre del comando)",
+   "doc": "(documentacion acerca del funcionamiento del comando y sus parámetros)",
+   "codigo": "(código python debidamente identado según la documentación anterior)"
+  }
+  
+  si el código es aceptado correctamente por el server entonces devolverá el objeto JSON con la informacíon que ingresó menos la parte del código la cual permanecerá oculta 
+  
+  
   
