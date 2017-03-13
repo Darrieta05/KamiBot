@@ -5,6 +5,8 @@ import os, pymongo, datetime
 from bson.json_util import dumps
 from flask import Flask, request, session, redirect, url_for,  render_template, json, jsonify, Response
 from flask_pymongo import PyMongo
+from bson import json_util, ObjectId
+
 
 
 app = Flask(__name__)
@@ -71,6 +73,7 @@ def find_comando(nombre):
         else:
             resultado = "Ningun comando con ese nombre"
 
+        save_log("busca comando")
         return jsonify({"resultado": resultado})
     else:
         return "Se esperaba un metodo GET"
@@ -136,39 +139,9 @@ def ex_comando(nombre):
             resultado = "Ningun comando con ese nombre"
 
         return jsonify({"resultado": resultado})
+        save_log("ejecuta")
     else:
         return "Se esperaba un metodo POST"
-
-@app.route('/api/yoda')
-def yoda():
-    in_args = request.args
-    parametro = in_args['parametro1']
-
-    response = requests.get("https://yoda.p.mashape.com/yoda?sentence=" + parametro, headers={
-    "X-Mashape-Key": "N1r9Wjs7i3mshVbBblejkqCufYqRp1AVNxhjsnV1hCxPlUJehU",
-    "Accept": "text/plain"
-  })
-    print(response)
-    print(response.json)
-    contenido = response.json()
-
-    print(contenido)
-
-@app.route('/api/temperatura', methods=['POST'])
-def temperatura():
-    parametro1 = request.args["parametro1"]
-    parametro2 = request.args["parametro2"]
-    print (parametro1)
-    r = requests.get(
-        'http://api.openweathermap.org/data/2.5/weather?zip='+parametro1+','+parametro2+'&appid=fd38d62aa4fe1a03d86eee91fcd69f6e')
-    # json_object = r.text
-
-    json_object = r.json()
-    temp_k = float(json_object['main']['temp'])
-    country = json_object['sys']['country']
-    temp_c = (temp_k - 273.15)
-    resp = Response(json.dumps(temp_c), status=200, mimetype='application/json')
-    return resp
 
 @app.route('/api/actualiza/<nombre>', methods=['POST', 'GET'])
 def upd_comando(nombre):
@@ -215,9 +188,15 @@ def del_comando(nombre):
 def sh_log():
     if request.method == 'GET':
         log = mongo.db.log
-        resultado = log.find()
-        array = list(resultado)
-        return jsonify({"log": dumps(array)})
+
+        resultado = []
+
+        for i in log.find():
+            print (i)
+            resultado.append({"accion" : i["accion"], "fecha" : i["fecha"]})
+        save_log("muestra log")
+        return jsonify({"log" : resultado})
+
     else:
         return "Se esperaba un metodo GET"
 
