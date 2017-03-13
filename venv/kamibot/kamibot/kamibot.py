@@ -1,5 +1,5 @@
-# coding = UTF-8
-
+# -*- coding: utf-8 -*-
+# imports necesarios para el funcionamiento de Kami
 import requests
 import os, pymongo, datetime
 from bson.json_util import dumps
@@ -9,12 +9,14 @@ from flask_pymongo import PyMongo
 
 app = Flask(__name__)
 app.config.from_object(__name__) # load config from this file , kamibot.py
+
+# Conección a la base de datos mongo mediante mlab.com
 app.config['MONGO_DBNAME']= 'kamibot'
 app.config['MONGO_URI'] = 'mongodb://darrieta:Daralu25@ds161049.mlab.com:61049/kamibot'
 
 mongo = PyMongo(app)
 
-
+# Menjo de errores según el status
 @app.errorhandler(404)
 def handle_bad_request(e):
     return 'Not Found!'
@@ -26,6 +28,12 @@ def handle_bad_server(e):
 @app.errorhandler(405)
 def handle_bad_server(e):
     return 'Metodo incorrecto!'
+
+@app.errorhandler(400)
+def handle_bad_request(e):
+    return 'Hey! Bad request!'
+
+
 
 
 @app.route('/api', methods=['GET'])
@@ -115,15 +123,21 @@ def ex_comando(nombre):
 
         s = comando.find_one({"name": nombre})
         if s:
-            print(s["code"])
-            try:
-                exec s["code"]
-                print(resultado)
-            except ValueError:
-                resultado = "Hay un problema con el comando"
-            return jsonify({"resultado": resultado})
+            if s["code"]:
+                print(s["code"])
+                try:
+                    exec s["code"]
+                    print(resultado)
+                except ValueError:
+                    resultado = "Hay un problema con el comando"
+                except SyntaxError as err:
+                    print err.lineno
+            else:
+                resultado = "No se encuentra el campo \"code\""
         else:
             resultado = "Ningun comando con ese nombre"
+
+        return jsonify({"resultado": resultado})
     else:
         return "Se esperaba un metodo POST"
 

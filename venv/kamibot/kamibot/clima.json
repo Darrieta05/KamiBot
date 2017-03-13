@@ -1,0 +1,6 @@
+{
+  "nombre":"clima",
+  "doc": "busca informacion del tiempo atmosférico dependiendo de la ciudad que ingrese",
+  "codigo": "r = requests.get('http://api.openweathermap.org/data/2.5/weather?q='+parametro1+'&appid=fd38d62aa4fe1a03d86eee91fcd69f6e') \njson_object = r.json()
+  \ntemp_k = float(json_object['main']['temp'])\ncountry = json_object['sys']['country']\ntemp_c = (temp_k - 273.15)\nresultado = [temperatura = temp_c, país = country ]"
+}
